@@ -4,6 +4,9 @@ import prettier from "prettier";
 import parser from "prettier/parser-babel";
 import "bulmaswatch/superhero/bulmaswatch.min.css";
 import "./code-editor.css";
+import Highlighter from "monaco-jsx-highlighter";
+import { parse } from "@babel/parser";
+import traverse from "@babel/traverse";
 
 interface CodeEditorProps {
   initialValue: string;
@@ -15,9 +18,29 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
 
   const onEditorDidMount: OnMount = (editor) => {
     editorRef.current = editor;
+    // @ts-ignore
+    const babelParse = (code) =>
+      parse(code, {
+        sourceType: "module",
+        plugins: ["jsx", "typescript"],
+        allowImportExportEverywhere: true,
+        allowReturnOutsideFunction: true,
+      });
+
+    const highlighter = new Highlighter(
+      // @ts-ignore
+      window.monaco,
+      babelParse,
+      traverse,
+      editor
+    );
 
     editor.onDidChangeModelContent(() => {
-      onChange(editor.getValue());
+      const editorValue = editor.getValue();
+      highlighter.editorValue = editorValue;
+      highlighter.highlightCode();
+
+      onChange(editorValue);
     });
   };
 

@@ -64,7 +64,7 @@ export const App = () => {
   return (
     <div>
       <CodeEditor
-        initialValue="const a = 3;"
+        initialValue="import React from 'react'"
         onChange={(value) => {
           setInput(value);
         }}
