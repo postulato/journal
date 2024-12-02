@@ -1,12 +1,12 @@
-import MonacoEditor, { type OnMount } from "@monaco-editor/react";
-import { useRef } from "react";
-import prettier from "prettier";
-import parser from "prettier/parser-babel";
-import "bulmaswatch/superhero/bulmaswatch.min.css";
-import "./code-editor.css";
-import Highlighter from "monaco-jsx-highlighter";
-import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
+import MonacoEditor, { type OnMount } from '@monaco-editor/react';
+import { useEffect, useRef } from 'react';
+import prettier from 'prettier';
+import parser from 'prettier/parser-babel';
+import 'bulmaswatch/superhero/bulmaswatch.min.css';
+import './code-editor.css';
+import Highlighter from 'monaco-jsx-highlighter';
+import { parse } from '@babel/parser';
+import traverse from '@babel/traverse';
 
 interface CodeEditorProps {
   initialValue: string;
@@ -16,13 +16,36 @@ interface CodeEditorProps {
 const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
   const editorRef = useRef<any>();
 
+  useEffect(() => {
+    const OriginalResizeObserver = window.ResizeObserver;
+
+    window.ResizeObserver = function (callback: ResizeObserverCallback) {
+      const wrappedCallback: ResizeObserverCallback = (entries, observer) => {
+        window.requestAnimationFrame(() => {
+          callback(entries, observer);
+        });
+      };
+
+      return new OriginalResizeObserver(wrappedCallback);
+    } as unknown as { new (callback: ResizeObserverCallback): ResizeObserver };
+
+    for (let staticMethod in OriginalResizeObserver) {
+      if (OriginalResizeObserver.hasOwnProperty(staticMethod)) {
+        // @ts-ignore
+        window.ResizeObserver[staticMethod] =
+          // @ts-ignore
+          OriginalResizeObserver[staticMethod];
+      }
+    }
+  }, []);
+
   const onEditorDidMount: OnMount = (editor) => {
     editorRef.current = editor;
     // @ts-ignore
     const babelParse = (code) =>
       parse(code, {
-        sourceType: "module",
-        plugins: ["jsx", "typescript"],
+        sourceType: 'module',
+        plugins: ['jsx', 'typescript'],
         allowImportExportEverywhere: true,
         allowReturnOutsideFunction: true,
       });
@@ -49,12 +72,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
 
     const formatted = prettier
       .format(unformatted, {
-        parser: "babel",
+        parser: 'babel',
         plugins: [parser],
         semi: true,
         singleQuote: true,
       })
-      .replace(/\n$/, "");
+      .replace(/\n$/, '');
 
     editorRef.current.setValue(formatted);
   };
@@ -71,10 +94,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
         onMount={onEditorDidMount}
         value={initialValue}
         language="javascript"
-        height={300}
+        height="100%"
         theme="vs-dark"
         options={{
-          wordWrap: "on",
+          wordWrap: 'on',
           tabSize: 2,
           minimap: { enabled: false },
           showUnused: false,
