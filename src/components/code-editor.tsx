@@ -1,4 +1,4 @@
-import MonacoEditor, { type OnMount } from '@monaco-editor/react';
+import MonacoEditor, { type EditorDidMount } from '@monaco-editor/react';
 import { useEffect, useRef } from 'react';
 import prettier from 'prettier';
 import parser from 'prettier/parser-babel';
@@ -39,7 +39,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
     }
   }, []);
 
-  const onEditorDidMount: OnMount = (editor) => {
+  // @ts-ignore
+  const onEditorDidMount: EditorDidMount = (getEditorValue, editor) => {
     editorRef.current = editor;
     // @ts-ignore
     const babelParse = (code) =>
@@ -59,7 +60,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
     );
 
     editor.onDidChangeModelContent(() => {
-      const editorValue = editor.getValue();
+      const editorValue = getEditorValue();
       highlighter.editorValue = editorValue;
       highlighter.highlightCode();
 
@@ -91,7 +92,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ initialValue, onChange }) => {
         Format
       </button>
       <MonacoEditor
-        onMount={onEditorDidMount}
+        editorDidMount={onEditorDidMount}
         value={initialValue}
         language="javascript"
         height="100%"
