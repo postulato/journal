@@ -13,6 +13,7 @@ const App = () => {
   return (
     <Provider store={store}>
       <div>
+        <h1>TEST</h1>
         <CellList />
       </div>
     </Provider>
